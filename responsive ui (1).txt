@@ -1,0 +1,166 @@
+Layouts
+
+import 'package:flutter/material.dart';
+
+void main() => runApp(MyApp());
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Responsive UI',
+      home: ResponsiveHome(),
+    );
+  }
+}
+
+class ResponsiveHome extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(title: Text('Responsive UI')),
+    body: LayoutBuilder(
+    builder: (context, constraints) {
+    // Width-based layout
+    if (constraints.maxWidth < 600) {
+    return MobileLayout();
+    } else if (constraints.maxWidth < 1200) {
+    return TabletLayout();
+    } else {
+    return DesktopLayout();
+    }
+  },
+    ),
+    );
+  }
+}
+
+// Layouts
+class MobileLayout extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text("Mobile Layout", style: TextStyle(fontSize: 20)));
+  }
+}
+
+class TabletLayout extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text("Tablet Layout", style: TextStyle(fontSize: 24)));
+  }
+}
+
+class DesktopLayout extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text("Desktop Layout", style: TextStyle(fontSize:28)));
+    }
+}
+
+import 'package:flutter/material.dart';
+
+void main() => runApp(MyApp());
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Orientation',
+      home: OrientationResponsivePage(),
+    );
+  }
+}
+
+class OrientationResponsivePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Orientation Responsive UI')),
+      body: OrientationBuilder(
+        builder: (context, orientation) {
+          if (orientation == Orientation.portrait) {
+            return _portraitLayout();
+          } else {
+            return _landscapeLayout();
+          }
+        },
+      ),
+    );
+  }
+}
+
+// Portrait Layout
+Widget _portraitLayout() {
+  return Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Icon(Icons.phone_android, size: 100, color: Colors.blue),
+      SizedBox(height: 20),
+      Text("Portrait Mode", style: TextStyle(fontSize: 24)),
+    ],
+  );
+}
+
+// Landscape Layout
+Widget _landscapeLayout() {
+  return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+      Icon(Icons.tablet, size: 100, color: Colors.green),
+  SizedBox(width: 20),
+  Text("Landscape Mode", style: TextStyle(fontSize: 24)),
+      ],
+  );
+}
+
+MediaQuery:-
+
+import 'package:flutter/material.dart';
+
+void main() => runApp(MyApp());
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'MediaQuery Example',
+      home: MediaQueryExample(),
+    );
+  }
+}
+
+class MediaQueryExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // Get screen dimensions
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final orientation = MediaQuery.of(context).orientation;
+
+    return Scaffold(
+        appBar: AppBar(title: Text('MediaQuery Responsive UI')),
+        body: Center(
+        child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+        Text('Screen Width: $screenWidth', style: TextStyle(fontSize: 18)),
+    Text('Screen Height: $screenHeight', style: TextStyle(fontSize: 18)),
+    Text('Orientation: $orientation', style: TextStyle(fontSize: 18)),
+    SizedBox(height: 30),
+          Container(
+            width: screenWidth * 0.8, // 80% of screen width
+            height: screenHeight * 0.1, // 10% of screen height
+            color: Colors.blue,
+            child: Center(
+              child: Text(
+                'Responsive Box',
+                style: TextStyle(fontSize: 20, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
+        ),
+            ),
+        );
+    }
+}
