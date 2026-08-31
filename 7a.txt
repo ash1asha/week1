@@ -1,0 +1,125 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        appBar: AppBar(title: const Text('TextField')),
+        backgroundColor: Colors.blueAccent,
+        body: const Padding(
+          padding: EdgeInsets.all(16.0),
+          child: MyTextField(),
+        ),
+      ),
+    );
+  }
+}
+
+class MyTextField extends StatefulWidget {
+  const MyTextField({super.key});
+
+  @override
+  State<MyTextField> createState() => _MyTextFieldState();
+}
+
+class _MyTextFieldState extends State<MyTextField> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: _controller,
+          decoration: const InputDecoration(
+            labelText: 'Enter your name',
+            border: OutlineInputBorder(),
+            prefixIcon: Icon(Icons.person),
+          ),
+        ),
+        const SizedBox(height: 20),
+        ],
+      );
+
+  }
+}
+
+Another example for input field:-7a)Dropdown 
+
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        appBar: AppBar(title: const Text('Dropdown')),
+        backgroundColor: Colors.teal,
+        body: const Padding(
+          padding: EdgeInsets.all(16.0),
+          child: DropdownExample(),
+        ),
+      ),
+    );
+  }
+}
+
+class DropdownExample extends StatefulWidget {
+  const DropdownExample({super.key});
+
+  @override
+  State<DropdownExample> createState() => _DropdownExampleState();
+}
+
+class _DropdownExampleState extends State<DropdownExample> {
+  String? _selectedCity;
+
+  final List<String> _cities = ['New York', 'London', 'Tokyo', 'Delhi'];
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+  n     crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Select a City:', style: TextStyle(fontSize: 18)),
+        const SizedBox(height: 10),
+        DropdownButton<String>(
+          value: _selectedCity,
+          hint: const Text('Choose a city'),
+          isExpanded: true,
+          items: _cities.map((String city) {
+            return DropdownMenuItem<String>(
+              value: city,
+              child: Text(city),
+            );
+          }).toList(),
+          onChanged: (String? value) {
+            setState(() {
+              _selectedCity = value;
+            });
+          },
+        ),
+        const SizedBox(height: 20),
+        Text('Selected City: ${_selectedCity ?? "None"}'),
+      ],
+    );
+  }
+}
+
+
