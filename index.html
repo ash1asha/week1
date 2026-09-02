@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriCare AI - Smart Crop Diagnosis. Better Farming.</title>
+    <meta name="description" content="AI-Based Farmer Disease Diagnostic and Reporting Portal. Upload crop images, get instant preliminary diagnosis, and report crop diseases to agriculture officers.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Chart.js CDN for Officer Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        agri: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col pb-20 md:pb-0">
+
+    <!-- Top Navigation Header -->
+    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Brand Logo & Name -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="app.navigateToHome()">
+                    <div class="w-10 h-10 rounded-xl bg-agri-700 flex items-center justify-center text-white shadow-md shadow-agri-700/20">
+                        <i data-lucide="sprout" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <span class="text-xl font-extrabold text-slate-900 tracking-tight">AgriCare <span class="text-agri-700">AI</span></span>
+                        <p class="text-xs font-medium text-slate-500 hidden sm:block">Smart Crop Diagnosis. Better Farming.</p>
+                    </div>
+                </div>
+
+                <!-- Role Status & Desktop Nav -->
+                <div class="flex items-center space-x-3">
+                    <div id="nav-user-badge" class="hidden md:flex items-center bg-agri-50 border border-agri-100 px-3 py-1.5 rounded-full text-xs font-semibold text-agri-800 space-x-2">
+                        <span class="w-2 h-2 rounded-full bg-agri-600 animate-pulse"></span>
+                        <span id="nav-user-name">Ramesh Patel</span>
+                        <span class="text-slate-400">|</span>
+                        <span id="nav-user-role" class="uppercase text-[10px] tracking-wide bg-agri-700 text-white px-2 py-0.5 rounded-md">Farmer</span>
+                    </div>
+
+                    <!-- Desktop Nav Buttons -->
+                    <div id="desktop-nav-links" class="hidden md:flex items-center space-x-1">
+                        <!-- Dynamic desktop links inserted by app.js -->
+                    </div>
+
+                    <!-- Role Switcher Button -->
+                    <button id="btn-role-switch" onclick="app.toggleRole()" class="text-xs font-bold px-3.5 py-2 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition flex items-center gap-1.5">
+                        <i data-lucide="repeat" class="w-3.5 h-3.5"></i>
+                        <span id="role-switch-label">Switch to Officer</span>
+                    </button>
+
+                    <!-- Logout Button -->
+                    <button id="btn-logout" onclick="app.logout()" class="text-slate-400 hover:text-red-600 p-2 rounded-lg transition" title="Logout">
+                        <i data-lucide="log-out" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dynamic Application Container -->
+    <main id="app-container" class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- ==================== VIEW 1: AUTHENTICATION (LOGIN/REGISTER) ==================== -->
+        <section id="view-auth" class="hidden max-w-md mx-auto my-8">
+            <div class="agri-card p-6 sm:p-8 bg-white shadow-xl border-slate-200">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-agri-100 text-agri-700 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                        <i data-lucide="shield-check" class="w-8 h-8"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-900" id="auth-title">Farmer Login</h2>
+                    <p class="text-sm text-slate-500 mt-1">Access AgriCare AI diagnostic portal</p>
+                </div>
+
+                <!-- Login Form -->
+                <form id="form-auth" onsubmit="app.handleAuthSubmit(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Mobile Number or Email</label>
+                        <div class="relative">
+                            <i data-lucide="phone-call" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5"></i>
+                            <input type="text" id="auth-identifier" required placeholder="9876543210 or farmer@agricare.ai" value="9876543210" class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-agri-700 focus:outline-none transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Password</label>
+                        <div class="relative">
+                            <i data-lucide="lock" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5"></i>
+                            <input type="password" id="auth-password" required placeholder="••••••••" value="demo1234" class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-agri-700 focus:outline-none transition">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center text-xs">
+                        <label class="flex items-center text-slate-600 cursor-pointer">
+                            <input type="checkbox" checked class="rounded border-slate-300 text-agri-700 focus:ring-agri-700">
+                            <span class="ml-2">Remember me</span>
+                        </label>
+                        <a href="#" onclick="alert('Demo Mode: Use any password to log in.')" class="text-agri-700 font-medium hover:underline">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" class="w-full btn-primary py-3 text-base shadow-lg shadow-agri-700/20">
+                        <i data-lucide="log-in" class="w-5 h-5"></i>
+                        <span>Login to Portal</span>
+                    </button>
+                </form>
+
+                <!-- Pre-filled Quick Demo Credentials -->
+                <div class="mt-6 pt-6 border-t border-slate-100 space-y-2">
+                    <p class="text-xs font-semibold text-slate-400 text-center uppercase tracking-wider">Quick Demo Access</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="app.quickLogin('farmer')" class="py-2.5 px-3 bg-agri-50 hover:bg-agri-100 text-agri-800 font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 border border-agri-200 transition">
+                            <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                            <span>Farmer Login</span>
+                        </button>
+                        <button onclick="app.quickLogin('officer')" class="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 border border-slate-200 transition">
+                            <i data-lucide="briefcase" class="w-3.5 h-3.5"></i>
+                            <span>Officer Login</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================== VIEW 2: FARMER DASHBOARD ==================== -->
+        <section id="view-farmer-dashboard" class="space-y-6">
+            <!-- Welcome Header -->
+            <div class="bg-gradient-to-r from-agri-800 to-agri-700 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-agri-800/15 relative overflow-hidden">
+                <div class="absolute right-0 top-0 bottom-0 opacity-10 pointer-events-none pr-8 flex items-center">
+                    <i data-lucide="wheat" class="w-64 h-64"></i>
+                </div>
+                <div class="relative z-10 max-w-2xl">
+                    <span class="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-agri-100 mb-3">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> AI Agricultural Assistant
+                    </span>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">Welcome, Farmer 👋</h1>
+                    <p class="text-agri-100 text-sm sm:text-base mt-2">Diagnose crop diseases early, receive AI actionable guidance, and connect directly with regional agriculture officers.</p>
+                    
+                    <!-- Main CTA Button -->
+                    <div class="mt-6">
+                        <button onclick="app.navigateTo('diagnose')" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold px-6 py-3.5 rounded-xl shadow-lg shadow-amber-400/30 flex items-center gap-2 text-base transform hover:-translate-y-0.5 transition">
+                            <i data-lucide="camera" class="w-5 h-5"></i>
+                            <span>📷 Diagnose Your Crop</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="agri-card p-5 flex items-center space-x-4 border-slate-200">
+                    <div class="w-12 h-12 rounded-2xl bg-agri-50 text-agri-700 flex items-center justify-center font-bold">
+                        <i data-lucide="scan-line" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Diagnoses</p>
+                        <h3 class="text-2xl font-extrabold text-slate-900" id="farmer-stat-diagnoses">5</h3>
+                    </div>
+                </div>
+
+                <div class="agri-card p-5 flex items-center space-x-4 border-slate-200">
+                    <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center font-bold">
+                        <i data-lucide="file-check" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Reports Submitted</p>
+                        <h3 class="text-2xl font-extrabold text-slate-900" id="farmer-stat-reports">3</h3>
+                    </div>
+                </div>
+
+                <div class="agri-card p-5 flex items-center space-x-4 border-slate-200">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold">
+                        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Diseases Detected</p>
+                        <h3 class="text-2xl font-extrabold text-slate-900" id="farmer-stat-diseases">3</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Reports Section -->
+            <div class="agri-card p-6 border-slate-200">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900">Recent Disease Reports</h2>
+                        <p class="text-xs text-slate-500">Latest disease submissions sent to agriculture officer</p>
+                    </div>
+                    <button onclick="app.navigateTo('reports')" class="text-xs font-bold text-agri-700 hover:text-agri-800 flex items-center gap-1">
+                        <span>View All Reports</span>
+                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <!-- Recent Reports Container -->
+                <div id="recent-reports-container" class="space-y-3">
+                    <!-- Dynamic Recent Report Cards inserted by app.js -->
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================== VIEW 3: CROP DIAGNOSIS FORM ==================== -->
+        <section id="view-diagnose" class="hidden max-w-2xl mx-auto">
+            <div class="agri-card p-6 sm:p-8 bg-white border-slate-200">
+                <div class="mb-6">
+                    <span class="text-xs font-bold uppercase tracking-wider text-agri-700 bg-agri-50 px-3 py-1 rounded-full">Step-by-Step Analysis</span>
+                    <h1 class="text-2xl font-extrabold text-slate-900 mt-2">Diagnose Crop Disease</h1>
+                    <p class="text-sm text-slate-500 mt-1">Select your crop type and upload a clear leaf image for AI analysis.</p>
+                </div>
+
+                <!-- Form -->
+                <form id="form-diagnose" onsubmit="app.handleDiagnoseSubmit(event)" class="space-y-6">
+                    <!-- Step 1: Select Crop -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-900 mb-2">Step 1: Select Crop</label>
+                        <div class="relative">
+                            <select id="select-crop" required class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-slate-800 text-sm focus:ring-2 focus:ring-agri-700 focus:outline-none appearance-none cursor-pointer">
+                                <option value="Tomato">Tomato</option>
+                                <option value="Rice">Rice</option>
+                                <option value="Cotton">Cotton</option>
+                                <option value="Chili">Chili</option>
+                                <option value="Maize">Maize</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 absolute right-3.5 top-3.5 pointer-events-none"></i>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Upload Crop Image -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-900 mb-2">Step 2: Upload Crop Leaf Image</label>
+                        
+                        <!-- Dropzone -->
+                        <div id="upload-dropzone" class="dropzone p-6 text-center space-y-3" onclick="document.getElementById('input-file-image').click()">
+                            <div class="w-14 h-14 bg-agri-100 text-agri-700 rounded-full flex items-center justify-center mx-auto">
+                                <i data-lucide="upload-cloud" class="w-8 h-8"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-slate-800">Click to upload or drag leaf image</p>
+                                <p class="text-xs text-slate-400 mt-1">Supports PNG, JPG, JPEG (Max 10MB)</p>
+                            </div>
+                            <input type="file" id="input-file-image" accept="image/*" class="hidden" onchange="app.handleFileSelect(event)">
+                        </div>
+
+                        <!-- Quick Sample Leaf Preset Options for Instant Demo -->
+                        <div class="mt-4 pt-3 border-t border-slate-100">
+                            <p class="text-xs font-bold text-slate-500 mb-2 flex items-center gap-1">
+                                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i> Or Choose Quick Sample Leaf (Instant Demo):
+                            </p>
+                            <div id="sample-leaf-buttons" class="flex flex-wrap gap-2">
+                                <!-- Dynamic sample leaf buttons -->
+                            </div>
+                        </div>
+
+                        <!-- Image Preview Box -->
+                        <div id="preview-container" class="hidden mt-4 p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <img id="image-preview" src="" alt="Crop Leaf Preview" class="w-16 h-16 object-cover rounded-lg border border-slate-300">
+                                <div>
+                                    <p class="text-xs font-bold text-slate-800" id="preview-filename">leaf_sample.jpg</p>
+                                    <span class="inline-flex items-center gap-1 text-[11px] text-agri-700 font-semibold">
+                                        <i data-lucide="check-circle" class="w-3 h-3"></i> Ready for AI Analysis
+                                    </span>
+                                </div>
+                            </div>
+                            <button type="button" onclick="app.clearImageSelection()" class="text-xs text-red-600 hover:text-red-700 font-semibold px-2 py-1 rounded bg-red-50">Remove</button>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" id="btn-analyze-crop" class="w-full btn-primary py-3.5 text-base shadow-lg shadow-agri-700/25">
+                        <i data-lucide="sparkles" class="w-5 h-5"></i>
+                        <span>Analyze Crop</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+
+        <!-- ==================== VIEW 4: AI ANALYSIS LOADING STATE ==================== -->
+        <section id="view-ai-loading" class="hidden max-w-md mx-auto py-12 text-center">
+            <div class="agri-card p-8 bg-white border-slate-200 shadow-xl space-y-6">
+                <div class="relative w-24 h-24 mx-auto">
+                    <div class="absolute inset-0 rounded-full border-4 border-agri-100 animate-pulse"></div>
+                    <div class="w-24 h-24 rounded-full border-4 border-agri-700 border-t-transparent animate-spin-custom"></div>
+                    <div class="absolute inset-0 flex items-center justify-center text-agri-700">
+                        <i data-lucide="sprout" class="w-10 h-10 animate-bounce"></i>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-bold text-slate-900">AI is analyzing your crop...</h3>
+                    <p class="text-xs text-slate-500 mt-1">Comparing leaf patterns against agricultural pathology dataset</p>
+                </div>
+
+                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                    <div class="bg-agri-600 h-2 rounded-full w-3/4 animate-pulse"></div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================== VIEW 5: DIAGNOSIS RESULT ==================== -->
+        <section id="view-diagnosis-result" class="hidden max-w-3xl mx-auto space-y-6">
+            <div class="agri-card p-6 sm:p-8 bg-white border-slate-200 shadow-xl">
+                <!-- Header Badge -->
+                <div class="flex justify-between items-start border-b border-slate-100 pb-4 mb-6">
+                    <div>
+                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-agri-100 text-agri-800">
+                            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-agri-700"></i> AI Preliminary Diagnosis
+                        </span>
+                        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2" id="result-disease-name">Early Blight</h1>
+                        <p class="text-sm font-semibold text-slate-500">Detected on <span id="result-crop-name" class="text-agri-700 font-bold">Tomato</span></p>
+                    </div>
+
+                    <!-- Confidence Gauge Indicator -->
+                    <div class="flex flex-col items-center">
+                        <div class="confidence-gauge">
+                            <svg width="120" height="120" viewBox="0 0 100 100">
+                                <circle class="confidence-bg" cx="50" cy="50" r="45"></circle>
+                                <circle id="confidence-circle" class="confidence-progress" cx="50" cy="50" r="45" stroke-dashoffset="20"></circle>
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                <span class="text-xl font-extrabold text-slate-900" id="result-confidence-text">92%</span>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase">Confidence</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leaf Preview & Key Details Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <!-- Leaf Photo -->
+                    <div class="md:col-span-1">
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Uploaded Leaf Photo</p>
+                        <img id="result-leaf-image" src="" alt="Analyzed Leaf" class="w-full h-44 object-cover rounded-xl border border-slate-200 shadow-sm">
+                    </div>
+
+                    <!-- Symptoms List -->
+                    <div class="md:col-span-2 space-y-3">
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Observed Disease Symptoms</p>
+                        <ul id="result-symptoms-list" class="space-y-2 text-xs sm:text-sm text-slate-700">
+                            <!-- Dynamic Symptoms -->
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Recommended Actions Section -->
+                <div class="bg-agri-50/70 border border-agri-200 rounded-2xl p-5 mb-6">
+                    <h3 class="text-sm font-bold text-agri-900 flex items-center gap-2 mb-3">
+                        <i data-lucide="shield-alert" class="w-4 h-4 text-agri-700"></i> Recommended Agricultural Actions
+                    </h3>
+                    <ul id="result-recommendations-list" class="space-y-2 text-xs sm:text-sm text-agri-950 font-medium">
+                        <!-- Dynamic Recommendations -->
+                    </ul>
+                </div>
+
+                <!-- Demo Notice Disclaimer -->
+                <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2.5 mb-6">
+                    <i data-lucide="info" class="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5"></i>
+                    <p><strong>Demo Note:</strong> This preliminary AI diagnosis is generated for demonstration purposes. Please submit this result as an official disease report for Agriculture Officer verification.</p>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button onclick="app.navigateTo('report-form')" class="flex-1 btn-primary py-3.5 text-base shadow-lg shadow-agri-700/25">
+                        <i data-lucide="send" class="w-5 h-5"></i>
+                        <span>Submit Disease Report</span>
+                    </button>
+                    <button onclick="app.navigateTo('diagnose')" class="btn-secondary py-3.5 text-sm">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        <span>Try Another Image</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================== VIEW 6: DISEASE REPORT FORM ==================== -->
+        <section id="view-report-form" class="hidden max-w-2xl mx-auto">
+            <div class="agri-card p-6 sm:p-8 bg-white border-slate-200 shadow-xl">
+                <div class="mb-6">
+                    <span class="text-xs font-bold uppercase tracking-wider text-agri-700 bg-agri-50 px-3 py-1 rounded-full">Official Report Submission</span>
+                    <h1 class="text-2xl font-extrabold text-slate-900 mt-2">Report Crop Disease</h1>
+                    <p class="text-sm text-slate-500 mt-1">Submit diagnosis to regional Agriculture Officer for verification.</p>
+                </div>
+
+                <!-- Auto-populated Summary Card -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-6 flex items-center space-x-4">
+                    <img id="form-summary-image" src="" class="w-16 h-16 object-cover rounded-xl border border-slate-300">
+                    <div class="text-xs space-y-1">
+                        <p class="font-bold text-slate-900 text-sm" id="form-summary-crop-disease">Tomato - Early Blight</p>
+                        <p class="text-slate-600">Farmer: <span class="font-semibold text-slate-800" id="form-summary-farmer">Ramesh Patel</span></p>
+                        <p class="text-agri-700 font-bold">AI Confidence: <span id="form-summary-confidence">92%</span></p>
+                    </div>
+                </div>
+
+                <!-- Form -->
+                <form id="form-report" onsubmit="app.handleReportSubmit(event)" class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Village</label>
+                            <input type="text" id="report-village" required value="Narasaraopet" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-agri-700 focus:outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">District</label>
+                            <input type="text" id="report-district" required value="Palnadu" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-agri-700 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">State</label>
+                        <input type="text" id="report-state" required value="Andhra Pradesh" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-agri-700 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Additional Observations / Notes</label>
+                        <textarea id="report-notes" rows="3" placeholder="Mention field spread, weather conditions, or affected acreage..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-agri-700 focus:outline-none"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full btn-primary py-3.5 text-base shadow-lg shadow-agri-700/25">
+                        <i data-lucide="check-circle" class="w-5 h-5"></i>
+                        <span>Submit Disease Report</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+
+        <!-- ==================== VIEW 7: REPORT CONFIRMATION ==================== -->
+        <section id="view-report-success" class="hidden max-w-md mx-auto py-8 text-center">
+            <div class="agri-card p-8 bg-white border-slate-200 shadow-xl space-y-6">
+                <div class="w-20 h-20 bg-agri-100 text-agri-700 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                    <i data-lucide="check-circle-2" class="w-12 h-12 text-agri-700"></i>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl font-extrabold text-slate-900">Report Submitted Successfully!</h2>
+                    <p class="text-xs text-slate-500 mt-1">Your crop disease report has been registered in the portal.</p>
+                </div>
+
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-left space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-slate-500 font-medium">Report ID:</span>
+                        <span class="text-sm font-extrabold text-agri-800" id="success-report-id">AGR-2026-00001</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-slate-500 font-medium">Initial Status:</span>
+                        <span class="status-badge status-submitted text-xs">Submitted</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <button onclick="app.navigateTo('reports')" class="w-full btn-primary py-3 text-sm">
+                        <i data-lucide="list" class="w-4 h-4"></i>
+                        <span>View My Reports</span>
+                    </button>
+                    <button onclick="app.navigateTo('diagnose')" class="w-full btn-secondary py-3 text-sm">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span>Diagnose Another Crop</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================== VIEW 8: FARMER REPORT HISTORY ("MY REPORTS") ==================== -->
+        <section id="view-farmer-reports" class="hidden space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl font-extrabold text-slate-900">My Reports</h1>
+                    <p class="text-xs text-slate-500">Track all disease reports and agriculture officer verification updates.</p>
+                </div>
+                
+                <!-- Filter Tabs -->
+                <div class="flex flex-wrap gap-1.5 bg-slate-200/60 p-1 rounded-xl text-xs font-bold" id="farmer-report-filters">
+                    <button onclick="app.filterFarmerReports('ALL')" class="filter-tab px-3 py-1.5 rounded-lg bg-white text-slate-900 shadow-sm">All</button>
+                    <button onclick="app.filterFarmerReports('Submitted')" class="filter-tab px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900">Submitted</button>
+                    <button onclick="app.filterFarmerReports('Under Review')" class="filter-tab px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900">Under Review</button>
+                    <button onclick="app.filterFarmerReports('Verified')" class="filter-tab px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900">Verified</button>
+                </div>
+            </div>
+
+            <!-- Reports Cards Grid -->
+            <div id="farmer-reports-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Dynamic Report Cards -->
+            </div>
+        </section>
+
+
+        <!-- ==================== VIEW 9: AGRICULTURE OFFICER DASHBOARD ==================== -->
+        <section id="view-officer-dashboard" class="hidden space-y-6">
+            <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-6 sm:p-8 text-white shadow-xl">
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                    <div>
+                        <span class="inline-flex items-center gap-1.5 bg-slate-700/80 px-3 py-1 rounded-full text-xs font-semibold text-agri-300">
+                            <i data-lucide="shield" class="w-3.5 h-3.5"></i> Agriculture Officer Portal
+                        </span>
+                        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight mt-2">Disease Reports Dashboard</h1>
+                        <p class="text-slate-300 text-xs sm:text-sm mt-1">Review farmer-submitted disease cases and update verification status.</p>
+                    </div>
+                    <button onclick="app.navigateTo('officer-analytics')" class="bg-agri-700 hover:bg-agri-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-md">
+                        <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+                        <span>View Analytics</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Officer Statistics Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="agri-card p-4 border-slate-200">
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Reports</p>
+                    <h3 class="text-2xl font-extrabold text-slate-900 mt-1" id="officer-stat-total">3</h3>
+                </div>
+                <div class="agri-card p-4 border-slate-200">
+                    <p class="text-xs font-bold text-blue-600 uppercase tracking-wider">New Reports</p>
+                    <h3 class="text-2xl font-extrabold text-blue-900 mt-1" id="officer-stat-new">1</h3>
+                </div>
+                <div class="agri-card p-4 border-slate-200">
+                    <p class="text-xs font-bold text-amber-600 uppercase tracking-wider">Under Review</p>
+                    <h3 class="text-2xl font-extrabold text-amber-900 mt-1" id="officer-stat-review">1</h3>
+                </div>
+                <div class="agri-card p-4 border-slate-200">
+                    <p class="text-xs font-bold text-agri-700 uppercase tracking-wider">Verified / Resolved</p>
+                    <h3 class="text-2xl font-extrabold text-agri-900 mt-1" id="officer-stat-verified">1</h3>
+                </div>
+            </div>
+
+            <!-- Disease Reports Table -->
+            <div class="agri-card bg-white border-slate-200 overflow-hidden shadow-sm">
+                <div class="p-4 border-b border-slate-200 flex justify-between items-center">
+                    <h2 class="text-base font-bold text-slate-900">Farmer Disease Reports Table</h2>
+                    <span class="text-xs text-slate-500 font-medium">Click "Action" to update status</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs sm:text-sm">
+                        <thead class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200 uppercase text-[11px] tracking-wider">
+                            <tr>
+                                <th class="py-3 px-4">Report ID</th>
+                                <th class="py-3 px-4">Crop</th>
+                                <th class="py-3 px-4">Disease</th>
+                                <th class="py-3 px-4">Location</th>
+                                <th class="py-3 px-4">Date</th>
+                                <th class="py-3 px-4">Status</th>
+                                <th class="py-3 px-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="officer-table-body" class="divide-y divide-slate-100 font-medium text-slate-800">
+                            <!-- Dynamic Table Rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================== VIEW 10: OFFICER SIMPLE ANALYTICS ==================== -->
+        <section id="view-officer-analytics" class="hidden space-y-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-extrabold text-slate-900">Disease Analytics</h1>
+                    <p class="text-xs text-slate-500">Regional disease outbreak distribution & reported cases by crop.</p>
+                </div>
+                <button onclick="app.navigateTo('officer-dashboard')" class="btn-secondary py-2 px-3 text-xs">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    <span>Back to Officer Dashboard</span>
+                </button>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Disease Distribution Chart -->
+                <div class="agri-card p-5 bg-white border-slate-200">
+                    <h3 class="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="bar-chart-2" class="w-4 h-4 text-agri-700"></i> Disease Distribution
+                    </h3>
+                    <div class="relative h-64">
+                        <canvas id="chart-disease-distribution"></canvas>
+                    </div>
+                </div>
+
+                <!-- Reports by Crop Chart -->
+                <div class="agri-card p-5 bg-white border-slate-200">
+                    <h3 class="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="pie-chart" class="w-4 h-4 text-agri-700"></i> Reports by Crop
+                    </h3>
+                    <div class="relative h-64">
+                        <canvas id="chart-reports-by-crop"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Note Banner -->
+            <div class="p-4 bg-slate-100 border border-slate-200 rounded-2xl text-xs text-slate-600 flex items-start gap-3">
+                <i data-lucide="info" class="w-5 h-5 text-slate-500 flex-shrink-0 mt-0.5"></i>
+                <div>
+                    <p class="font-bold text-slate-800">Analytics Data Notice:</p>
+                    <p>These analytics charts represent preliminary disease report submissions in the portal for testing and decision-support modeling. Official disease advisories are issued post laboratory verification.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+
+    <!-- ==================== SHARED MODAL: REPORT DETAIL & STATUS UPDATER ==================== -->
+    <div id="modal-report-detail" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="agri-card bg-white max-w-xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl relative">
+            <button onclick="app.closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+
+            <div>
+                <span id="modal-report-status-badge" class="status-badge status-submitted text-xs">Submitted</span>
+                <h2 class="text-xl font-extrabold text-slate-900 mt-1" id="modal-report-id">AGR-2026-00001</h2>
+                <p class="text-xs text-slate-500" id="modal-report-date">Submitted on Sep 02, 2026</p>
+            </div>
+
+            <!-- Image & Crop Info -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <img id="modal-report-image" src="" class="w-full h-36 object-cover rounded-lg border border-slate-300">
+                <div class="text-xs space-y-1.5">
+                    <p><span class="font-bold text-slate-500">Crop:</span> <strong id="modal-report-crop" class="text-slate-900">Tomato</strong></p>
+                    <p><span class="font-bold text-slate-500">Disease:</span> <strong id="modal-report-disease" class="text-agri-700">Early Blight</strong></p>
+                    <p><span class="font-bold text-slate-500">Confidence:</span> <strong id="modal-report-confidence">92%</strong></p>
+                    <p><span class="font-bold text-slate-500">Farmer:</span> <span id="modal-report-farmer">Ramesh Patel</span></p>
+                    <p><span class="font-bold text-slate-500">Location:</span> <span id="modal-report-location">Narasaraopet, Palnadu</span></p>
+                </div>
+            </div>
+
+            <!-- Farmer Notes -->
+            <div>
+                <p class="text-xs font-bold text-slate-700 uppercase tracking-wider">Farmer Additional Notes</p>
+                <p class="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-200 mt-1" id="modal-report-notes">None provided.</p>
+            </div>
+
+            <!-- Officer Action Section (Visible for Officer or display only for Farmer) -->
+            <div id="modal-officer-action-box" class="pt-3 border-t border-slate-200 space-y-3">
+                <p class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1">
+                    <i data-lucide="edit-3" class="w-3.5 h-3.5 text-agri-700"></i> Officer Verification & Status Update
+                </p>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Update Status</label>
+                    <select id="modal-status-select" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-800">
+                        <option value="Submitted">Submitted</option>
+                        <option value="Under Review">Under Review</option>
+                        <option value="Verified">Verified</option>
+                        <option value="Resolved">Resolved</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Officer Notes / Guidance</label>
+                    <textarea id="modal-officer-notes-input" rows="2" placeholder="Enter official advice or verification comments..." class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium"></textarea>
+                </div>
+
+                <button onclick="app.saveStatusUpdate()" class="w-full btn-primary py-2.5 text-xs font-bold">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    <span>Save Status Update</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Mobile Navigation Fixed Bottom Bar (Farmer Experience) -->
+    <nav id="mobile-nav-bar" class="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 md:hidden mobile-nav-bar">
+        <div class="grid grid-cols-4 py-2 text-center text-[10px] font-bold text-slate-500">
+            <button onclick="app.navigateToHome()" id="mob-nav-home" class="flex flex-col items-center gap-1 text-agri-700">
+                <i data-lucide="home" class="w-5 h-5"></i>
+                <span>Home</span>
+            </button>
+            <button onclick="app.navigateTo('diagnose')" id="mob-nav-diagnose" class="flex flex-col items-center gap-1 hover:text-agri-700">
+                <i data-lucide="camera" class="w-5 h-5"></i>
+                <span>Diagnose</span>
+            </button>
+            <button onclick="app.navigateTo('reports')" id="mob-nav-reports" class="flex flex-col items-center gap-1 hover:text-agri-700">
+                <i data-lucide="file-text" class="w-5 h-5"></i>
+                <span>Reports</span>
+            </button>
+            <button onclick="app.toggleRole()" id="mob-nav-profile" class="flex flex-col items-center gap-1 hover:text-agri-700">
+                <i data-lucide="user-check" class="w-5 h-5"></i>
+                <span>Role</span>
+            </button>
+        </div>
+    </nav>
+
+
+    <!-- Application JavaScript Bundles -->
+    <script src="js/services/diseaseDetectionService.js"></script>
+    <script src="js/services/storageService.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
